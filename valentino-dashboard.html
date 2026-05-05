@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valentino Business Lab — Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: #0A0A0A;
+      color: #E0E0E0;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background: #0F0F0F;
+      border-bottom: 1px solid #1A1A1A;
+      padding: 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+    .header-date {
+      font-size: 13px;
+      color: #888;
+    }
+
+    /* Main container */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* Grid system */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      main { padding: 1rem; }
+    }
+
+    /* Widget card */
+    .widget {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+      animation: fadeIn 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .widget:nth-child(1) { animation-delay: 0.1s; }
+    .widget:nth-child(2) { animation-delay: 0.2s; }
+    .widget:nth-child(3) { animation-delay: 0.3s; }
+    .widget:nth-child(4) { animation-delay: 0.4s; }
+    .widget:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .widget:hover {
+      border-color: #00D97E;
+      box-shadow: 0 0 20px rgba(0, 217, 126, 0.1);
+    }
+
+    .widget h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .widget-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-urgente { background: rgba(212, 90, 48, 0.15); color: #D85A30; }
+    .badge-activo { background: rgba(29, 158, 117, 0.15); color: #1D9E75; }
+    .badge-info { background: rgba(101, 153, 34, 0.15); color: #639922; }
+
+    /* Task item */
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .task-item:last-child { border-bottom: none; }
+
+    .task-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid #00D97E;
+      border-radius: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .task-checkbox input {
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .task-checkbox input:checked + .check-mark {
+      opacity: 1;
+    }
+
+    .check-mark {
+      position: absolute;
+      opacity: 0;
+      color: #00D97E;
+      font-size: 14px;
+      font-weight: bold;
+      pointer-events: none;
+    }
+
+    .task-text {
+      flex: 1;
+      font-size: 14px;
+      color: #D0D0D0;
+    }
+
+    .task-checkbox input:checked ~ .task-text {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    /* Metric card */
+    .metric {
+      background: #0F0F0F;
+      border: 1px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #00D97E;
+    }
+
+    /* Status grid */
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .status-item {
+      background: #0F0F0F;
+      border-left: 3px solid #639922;
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .status-item.urgent {
+      border-left-color: #D85A30;
+    }
+
+    .status-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .status-text {
+      color: #888;
+      font-size: 11px;
+    }
+
+    /* Mind map container */
+    .mindmap-section {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .mindmap-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #E0E0E0;
+    }
+
+    /* Mapa mental inline */
+    #mm-wrap {
+      position: relative;
+      padding: 1.5rem 0 2rem;
+    }
+
+    #mmsvg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .mmg {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 128px minmax(0, 1fr);
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .mmg { grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr); gap: 24px; }
+    }
+
+    .mmc { display: flex; flex-direction: column; gap: 10px; }
+
+    .bc {
+      background: #0F0F0F;
+      border: 0.5px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      transition: all 0.15s;
+      cursor: default;
+      font-size: 12px;
+    }
+
+    .bc:hover {
+      border-color: #00D97E;
+      box-shadow: 0 0 12px rgba(0, 217, 126, 0.08);
+    }
+
+    .bc .bl { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .bc .bs { height: 0.5px; background: #1a1a1a; margin-bottom: 6px; }
+    .bc .bi { display: flex; flex-direction: column; gap: 2px; }
+    .bc .bii { display: flex; align-items: flex-start; gap: 5px; font-size: 10px; color: #888; line-height: 1.3; }
+    .bc .bd { width: 3px; height: 3px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+    .bc.bm { opacity: 0.5; }
+
+    .cn {
+      background: #0F0F0F;
+      border: 0.5px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .cn .cnt { font-size: 12px; font-weight: 600; line-height: 1.3; letter-spacing: 0.3px; }
+    .cn .cnl { width: 16px; height: 0.5px; background: #1a1a1a; margin: 6px auto; }
+    .cn .cns { font-size: 9px; color: #666; letter-spacing: 0.3px; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      color: #555;
+      font-size: 12px;
+      border-top: 1px solid #1a1a1a;
+      margin-top: 2rem;
+    }
+
+    /* Utilities */
+    .text-muted { color: #666; }
+    .text-success { color: #00D97E; }
+    .text-warning { color: #F59E0B; }
+    .text-danger { color: #D85A30; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <div>
+      <h1>Valentino Business Lab</h1>
+    </div>
+    <div class="header-date" id="header-date"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Dashboard Widgets -->
+  <div class="dashboard-grid">
+
+    <!-- HOY -->
+    <div class="widget">
+      <h2>
+        <span style="color: #00D97E;">●</span> Hoy
+        <span class="widget-badge badge-activo">Prioridad máxima</span>
+      </h2>
+      <div id="hoy-tasks">
+        <div class="task-item">
+          <label class="task-checkbox">
+            <input type="checkbox" data-task="hoy-1">
+            <span class="check-mark">✓</span>
+          </label>
+          <div class="task-text">Acción 1 — pendiente</div>
+        </div>
+        <div class="task-item">
+          <label class="task-checkbox">
+            <input type="checkbox" data-task="hoy-2">
+            <span class="check-mark">✓</span>
+          </label>
+          <div class="task-text">Acción 2 — pendiente</div>
+        </div>
+        <div class="task-item">
+          <label class="task-checkbox">
+            <input type="checkbox" data-task="hoy-3">
+            <span class="check-mark">✓</span>
+          </label>
+          <div class="task-text">Acción 3 — pendiente</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESTA SEMANA -->
+    <div class="widget">
+      <h2>
+        <span style="color: #639922;">●</span> Esta semana
+      </h2>
+      <div style="font-size: 12px; color: #999; line-height: 1.8;">
+        <div>✓ RNPA → pedir info a fabricantes</div>
+        <div>✓ Publicar BMW</div>
+        <div>✓ Moto de agua + UTV Polaris</div>
+        <div>✓ Vespa + monociclo + cubiertas</div>
+        <div>✓ Métricas ML Must Import</div>
+      </div>
+    </div>
+
+    <!-- LIQUIDACIÓN TRACKER -->
+    <div class="widget">
+      <h2>
+        <span style="color: #D85A30;">●</span> Liquidación de activos
+        <span class="widget-badge badge-urgente">Urgente</span>
+      </h2>
+      <div class="metric">
+        <span class="metric-label">BMW</span>
+        <span class="metric-value" id="bmw-status">Pendiente</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Moto de agua</span>
+        <span class="metric-value" id="moto-status">Pendiente</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">UTV Polaris</span>
+        <span class="metric-value" id="utv-status">Pendiente</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Otros (Ranger, TAOS, Vespa)</span>
+        <span class="metric-value" id="otros-status">5 items</span>
+      </div>
+    </div>
+
+    <!-- NEGOCIOS STATUS -->
+    <div class="widget">
+      <h2>
+        <span style="color: #639922;">●</span> Negocios
+      </h2>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-title">LCDDL</div>
+          <div class="status-text">8 locales, mayorista activo</div>
+        </div>
+        <div class="status-item">
+          <div class="status-title">Must Import</div>
+          <div class="status-text">ML: stash box + soporte</div>
+        </div>
+        <div class="status-item">
+          <div class="status-title">Luxury Import</div>
+          <div class="status-text">Celulares nuevos y usados</div>
+        </div>
+        <div class="status-item urgent">
+          <div class="status-title">RNPA Paraguay</div>
+          <div class="status-text">Comprador esperando</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÉTRICAS GENERALES -->
+    <div class="widget">
+      <h2>
+        <span style="color: #F59E0B;">●</span> Métricas
+      </h2>
+      <div class="metric">
+        <span class="metric-label">Energía mental</span>
+        <span class="metric-value text-warning">Alto</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Liquidez — dinero vivo</span>
+        <span class="metric-value text-danger">Apremiante</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Bloques operativos</span>
+        <span class="metric-value text-success">5/7</span>
+      </div>
+    </div>
+
+    <!-- PARKING -->
+    <div class="widget">
+      <h2>
+        <span style="color: #7F77DD;">●</span> Parking
+        <span class="widget-badge">No ahora</span>
+      </h2>
+      <div style="font-size: 11px; color: #666; line-height: 1.7;">
+        <div>• Suplementos / marca propia</div>
+        <div>• Motos eléctricas importación</div>
+        <div>• Luxury Import expansión</div>
+        <div>• Curso IA</div>
+        <div>• Marca personal / contenido</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mapa Mental -->
+  <div class="mindmap-section">
+    <h2>Mapa Mental Interactivo</h2>
+    <div id="mm-wrap">
+      <svg id="mmsvg"></svg>
+      <div class="mmg">
+        <div class="mmc">
+          <div class="bc" id="b1" data-c="#1D9E75" data-s="left" style="border-left:2.5px solid #1D9E75">
+            <div class="bl" style="color:#1D9E75">Hoy</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#1D9E75"></div>Acción 1</div>
+              <div class="bii"><div class="bd" style="background:#1D9E75"></div>Acción 2</div>
+              <div class="bii"><div class="bd" style="background:#1D9E75"></div>Acción 3</div>
+            </div>
+          </div>
+          <div class="bc" id="b2" data-c="#639922" data-s="left" style="border-left:2.5px solid #639922">
+            <div class="bl" style="color:#639922">Esta semana</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#639922"></div>RNPA → pedir info</div>
+              <div class="bii"><div class="bd" style="background:#639922"></div>Publicar BMW</div>
+              <div class="bii"><div class="bd" style="background:#639922"></div>Moto + Polaris</div>
+              <div class="bii"><div class="bd" style="background:#639922"></div>Vespa + accesorios</div>
+              <div class="bii"><div class="bd" style="background:#639922"></div>Métricas ML</div>
+            </div>
+          </div>
+          <div class="bc bm" id="b3" data-c="#7F77DD" data-s="left" style="border-left:2.5px solid #7F77DD">
+            <div class="bl" style="color:#7F77DD">Parking</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#7F77DD"></div>Suplementos</div>
+              <div class="bii"><div class="bd" style="background:#7F77DD"></div>Motos eléctricas</div>
+              <div class="bii"><div class="bd" style="background:#7F77DD"></div>Luxury expansión</div>
+              <div class="bii"><div class="bd" style="background:#7F77DD"></div>Curso IA</div>
+              <div class="bii"><div class="bd" style="background:#7F77DD"></div>Marca personal</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn" id="bcenter">
+          <div class="cnt">Valentino<br>Business<br>Lab</div>
+          <div class="cnl"></div>
+          <div class="cns">Mayo 2025</div>
+        </div>
+
+        <div class="mmc">
+          <div class="bc" id="b4" data-c="#D85A30" data-s="right" style="border-left:2.5px solid #D85A30">
+            <div style="font-size:9px;color:#D85A30;font-weight:600;margin-bottom:6px">Urgente</div>
+            <div class="bl" style="color:#D85A30">Liquidación activos</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#D85A30"></div>BMW → foto → publicar</div>
+              <div class="bii"><div class="bd" style="background:#D85A30"></div>Moto de agua → publicar</div>
+              <div class="bii"><div class="bd" style="background:#D85A30"></div>UTV Polaris → publicar</div>
+              <div class="bii"><div class="bd" style="background:#D85A30"></div>Ranger → detail</div>
+              <div class="bii"><div class="bd" style="background:#D85A30"></div>TAOS → detail</div>
+            </div>
+          </div>
+          <div class="bc" id="b5" data-c="#BA7517" data-s="right" style="border-left:2.5px solid #BA7517">
+            <div style="font-size:9px;color:#BA7517;font-weight:600;margin-bottom:6px">Comprador esperando</div>
+            <div class="bl" style="color:#BA7517">RNPA Paraguay</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#BA7517"></div>Pedir info fabricantes</div>
+              <div class="bii"><div class="bd" style="background:#BA7517"></div>Cargar alta RNPA</div>
+            </div>
+          </div>
+          <div class="bc" id="b6" data-c="#EF9F27" data-s="right" style="border-left:2.5px solid #EF9F27">
+            <div class="bl" style="color:#854F0B">Must + Luxury</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#EF9F27"></div>ML: stash + soporte</div>
+              <div class="bii"><div class="bd" style="background:#EF9F27"></div>Luxury: stock + ventas</div>
+              <div class="bii"><div class="bd" style="background:#EF9F27"></div>Próxima importación</div>
+            </div>
+          </div>
+          <div class="bc" id="b7" data-c="#97C459" data-s="right" style="border-left:2.5px solid #97C459">
+            <div class="bl" style="color:#639922">LCDDL</div>
+            <div class="bs"></div>
+            <div class="bi">
+              <div class="bii"><div class="bd" style="background:#97C459"></div>Mayorista: contenido</div>
+              <div class="bii"><div class="bd" style="background:#97C459"></div>Contador / IVA</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Última actualización: <span id="last-update">Hoy</span> • Dashboard personal de Valentino Business Lab 2025</p>
+</footer>
+
+<script>
+// Date and time
+function updateDate() {
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const dateStr = now.toLocaleDateString('es-ES', options);
+  const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('header-date').textContent = `${dateStr} • ${timeStr}`;
+}
+updateDate();
+setInterval(updateDate, 60000);
+
+// Task checkboxes - save to localStorage
+document.querySelectorAll('.task-checkbox input').forEach(checkbox => {
+  const taskId = checkbox.dataset.task;
+  const saved = localStorage.getItem(`task-${taskId}`);
+  if (saved === 'done') {
+    checkbox.checked = true;
+  }
+  checkbox.addEventListener('change', () => {
+    localStorage.setItem(`task-${taskId}`, checkbox.checked ? 'done' : 'pending');
+  });
+});
+
+// Mind map connections
+(function(){
+  function draw(){
+    const wrap = document.getElementById('mm-wrap');
+    const svg = document.getElementById('mmsvg');
+    const cen = document.getElementById('bcenter');
+    if (!wrap || !svg || !cen) return;
+    const wr = wrap.getBoundingClientRect();
+    const cr = cen.getBoundingClientRect();
+    svg.setAttribute('width', wr.width);
+    svg.setAttribute('height', wr.height);
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    
+    ['b1','b2','b3','b4','b5','b6','b7'].forEach(id => {
+      const card = document.getElementById(id);
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      const color = card.dataset.c || '#888';
+      const side = card.dataset.s;
+      let x1, y1, x2, y2;
+      if (side === 'left') {
+        x1 = r.right - wr.left; y1 = r.top + r.height/2 - wr.top;
+        x2 = cr.left - wr.left; y2 = cr.top + cr.height/2 - wr.top;
+      } else {
+        x1 = cr.right - wr.left; y1 = cr.top + cr.height/2 - wr.top;
+        x2 = r.left - wr.left; y2 = r.top + r.height/2 - wr.top;
+      }
+      const span = Math.abs(x2 - x1);
+      const cp = Math.max(span * 0.5, 30);
+      const d = `M${x1} ${y1} C${x1+cp} ${y1} ${x2-cp} ${y2} ${x2} ${y2}`;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      const muted = card.classList.contains('bm');
+      path.setAttribute('stroke-width', '0.8');
+      path.setAttribute('opacity', muted ? '0.15' : '0.32');
+      if (muted) path.setAttribute('stroke-dasharray', '4 5');
+      svg.appendChild(path);
+      
+      card.addEventListener('mouseenter', () => {
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('opacity', '0.75');
+        path.removeAttribute('stroke-dasharray');
+      });
+      card.addEventListener('mouseleave', () => {
+        path.setAttribute('stroke-width', '0.8');
+        path.setAttribute('opacity', muted ? '0.15' : '0.32');
+        if (muted) path.setAttribute('stroke-dasharray', '4 5');
+      });
+    });
+  }
+  requestAnimationFrame(() => {
+    draw();
+    window.addEventListener('resize', draw);
+  });
+})();
+
+// Update timestamp
+document.getElementById('last-update').textContent = new Date().toLocaleDateString('es-ES');
+</script>
+
+</body>
+</html>
